@@ -1,0 +1,87 @@
+{
+  "project_info": {
+    "project_number": "492693029909",
+    "firebase_url": "https://wootter.firebaseio.com",
+    "project_id": "wootter",
+    "storage_bucket": "wootter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:492693029909:android:9d498c469454b42fc27a1c",
+        "android_client_info": {
+          "package_name": "wootter.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "492693029909-u0uuill1104dpohmid0voqsag6gro8qa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wootter.com",
+            "certificate_hash": "2485d49a5c4bfacff68203c6a6f1b77e28abc135"
+          }
+        },
+        {
+          "client_id": "492693029909-2jjb1q2odnhbe9u92qiinhc9e3jsbhvl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wootter.com",
+            "certificate_hash": "1280844b27a481ae1843cf1d3159cc9dd7b1ef4a"
+          }
+        },
+        {
+          "client_id": "492693029909-64bprh0vo1aejep8m9pnt28gc0f85454.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wootter.com",
+            "certificate_hash": "c57d6634f6116b53c380cbe6a3bd8a1a3b695acd"
+          }
+        },
+        {
+          "client_id": "492693029909-6q7fnufsle9iij32tvuk802r0vvbdjvf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wootter.com",
+            "certificate_hash": "a24c2b13f7ce1ae203b6efc16143005d50e2c08c"
+          }
+        },
+        {
+          "client_id": "492693029909-506015fstcredak2t3d4dhijhcifrtlj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wootter.com",
+            "certificate_hash": "437de9e0b2d03582ec3dd2fe4114217ab54ea658"
+          }
+        },
+        {
+          "client_id": "492693029909-qno9m04cedvon7v4q3k618ps4v5htfq1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJIu4cvxOILhkIjty8wfoyytfaS9hhPoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "492693029909-qno9m04cedvon7v4q3k618ps4v5htfq1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "492693029909-mm9q12rhn5uk1mjkb80rdfmvv5g2f785.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "wootter.com"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
