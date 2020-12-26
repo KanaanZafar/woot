@@ -31,6 +31,8 @@ import 'package:wootter_x/widgets/customWidgets.dart';
 import 'package:wootter_x/widgets/newWidget/customUrlText.dart';
 import 'package:wootter_x/widgets/newWidget/title_text.dart';
 import 'package:provider/provider.dart';
+import 'package:wootter_x/widgets/woot/woot.dart';
+import 'package:wootter_x/widgets/woot/widgets/wootBottomSheet.dart';
 
 class ComposeWootPage extends StatefulWidget {
   ComposeWootPage({Key key, this.isRewoot, this.isWoot = true})
@@ -38,6 +40,7 @@ class ComposeWootPage extends StatefulWidget {
 
   final bool isRewoot;
   final bool isWoot;
+
   _ComposeWootReplyPageState createState() => _ComposeWootReplyPageState();
 }
 
@@ -56,11 +59,11 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
   List<File> _recentImages = [];
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
   // Pool Ui
   bool isWootTypePool = false;
   final GlobalKey<FormBuilderState> _fbPoolFormKey =
       GlobalKey<FormBuilderState>();
+
   @override
   void dispose() {
     scrollcontroller.dispose();
@@ -72,6 +75,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
   void initState() {
     var feedState = Provider.of<FeedState>(context, listen: false);
     model = feedState.wootToReplyModel;
+    print("------model: ${model}");
+
     scrollcontroller = ScrollController();
     _textEditingController = TextEditingController();
     scrollcontroller..addListener(_scrollListener);
@@ -96,8 +101,9 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
       FilterOptionGroup _options = FilterOptionGroup()
         ..setOption(AssetType.video, option);
       List<AssetPathEntity> list = await PhotoManager.getAssetPathList();
-      List<AssetEntity> _iamges =
-          await list.first.getAssetListRange(start: 0, end: 10);
+      List<AssetEntity> _iamges = list.length > 0
+          ? await list?.first?.getAssetListRange(start: 0, end: 10)
+          : List<AssetEntity>();
       _iamges.forEach((element) async {
         _recentImages.add(await element.file);
       });
@@ -128,8 +134,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
     }
     if (scrollcontroller.position.userScrollDirection ==
         ScrollDirection.forward) {
-      Provider.of<ComposeWootState>(context, listen: false)
-          .setIsScrollingDown = false;
+      Provider.of<ComposeWootState>(context, listen: false).setIsScrollingDown =
+          false;
     }
   }
 
@@ -153,8 +159,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
     });
   }
 
-  void setVideo() async{
-   /* ImagePicker().getVideo(source: source)
+  void setVideo() async {
+    /* ImagePicker().getVideo(source: source)
         .then((PickedFile file) {
           pfile = file;
       setState(() {
@@ -167,18 +173,16 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
     // PhotoPicker.clearThumbMemoryCache();
 
     FilePickerResult result = await FilePicker.platform.pickFiles(
-        type: FileType.video,
+      type: FileType.video,
     );
     var x = result?.files.single.path ?? '-1';
     if (x != '-1') {
       _video = File(result.files.single.path);
       VideoThumbnail.thumbnailFile(video: _video.path).then((response) {
         _thumbnail = File(response);
-
-
       });
-    }
-    else _video = null;
+    } else
+      _video = null;
     setState(() {});
   }
 
@@ -203,6 +207,7 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
 
     FeedModel wootModel = createWootModel();
     kScreenloader.showLoader(context);
+
     /// If woot contain image
     /// First image is uploaded on firebase storage
     /// After successfull image upload to firebase storage it returns image path
@@ -234,7 +239,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
 
       String imagePath = null;
       ParseFileBase parseFile = new ParseFile(File(_image.path));
-      ParseObject parseObject = ParseObject('Images')..set('imageFile', parseFile);
+      ParseObject parseObject = ParseObject('Images')
+        ..set('imageFile', parseFile);
 
       print("getParsedFileObj = " + parseObject.toString());
       ParseResponse response = await parseObject.save();
@@ -267,9 +273,7 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
           state.addcommentToPost(wootModel);
         }
       }
-    }
-
-    else if (_video != null) {
+    } else if (_video != null) {
       /// upload video to firebase storage....
       /*await state.uploadFile(_video).then((videoPath) async {
         if (videoPath != null) {
@@ -305,7 +309,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
       // path.replaceFirst('image_picker', 'video_picker');
 
       ParseFileBase parseFile = new ParseFile(_video);
-      ParseObject parseObject = ParseObject('Videos')..set('videoFile', parseFile);
+      ParseObject parseObject = ParseObject('Videos')
+        ..set('videoFile', parseFile);
 
       print("getParsedFileObj = " + parseObject.toString());
       ParseResponse response = await parseObject.save();
@@ -390,7 +395,6 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
     });
 
     kScreenloader.hideLoader();
-
   }
 
   FeedModel postNewWoot() {
@@ -449,9 +453,8 @@ class _ComposeWootReplyPageState extends State<ComposeWootPage> {
                 ? model.key
                 : null,
         userId: myUser.userId,
-      likeList: List<String>(),
-      dislikeList: List<String>()
-    );
+        likeList: List<String>(),
+        dislikeList: List<String>());
 
     // print('return wootModel');
     return reply;
@@ -631,6 +634,7 @@ class _ComposeRewoot
   _ComposeRewoot(this.viewState) : super(viewState);
 
   final _ComposeWootReplyPageState viewState;
+
   Widget _woot(BuildContext context, FeedModel model) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,15 +702,19 @@ class _ComposeRewoot
           ),
           urlStyle: TextStyle(color: Colors.blue, fontWeight: FontWeight.w400),
         ),
-        model.imagePath != null ? WootImage(
-          model: model,
-          type: WootType.Image,
-        ) : Container(),
-        model.video != null ? VideoThumbnailWidget(
-          path: model.video,
-          model: model,
-          type: WootType.Reply,
-        ) : Container(),
+        model.imagePath != null
+            ? WootImage(
+                model: model,
+                type: WootType.Image,
+              )
+            : Container(),
+        model.video != null
+            ? VideoThumbnailWidget(
+                path: model.video,
+                model: model,
+                type: WootType.Reply,
+              )
+            : Container(),
       ],
     );
   }
@@ -784,108 +792,140 @@ class _ComposeWoot
   final String translation;
 
   Widget _tweerCard(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Stack(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.only(left: 30),
-              margin: EdgeInsets.only(left: 20, top: 20, bottom: 3),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    width: 2.0,
-                    color: Colors.grey.shade400,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: 30),
+                margin: EdgeInsets.only(left: 20, top: 20, bottom: 3),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                      width: 2.0,
+                      color: Colors.grey.shade400,
+                    ),
                   ),
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      width: fullWidth(context) - 72,
+                      child: UrlText(
+                        text: viewState.model?.description ?? '',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        urlStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    UrlText(
+                      text:
+                          'Replying to ${viewState.model?.user?.userName ?? viewState.model?.user?.displayName}',
+                      style: TextStyle(
+                        color: TwitterColor.paleSky,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Container(
-                    width: fullWidth(context) - 72,
-                    child: UrlText(
-                      text: viewState.model?.description ?? '',
-                      style: TextStyle(
-                        color: Colors.black,
+                  customImage(context, viewState.model.user.profilePic,
+                      height: 40),
+                  SizedBox(width: 10),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        minWidth: 0, maxWidth: fullWidth(context) * .5),
+                    child: TitleText(viewState.model.user.displayName,
                         fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      urlStyle: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                        fontWeight: FontWeight.w800,
+                        overflow: TextOverflow.ellipsis),
                   ),
-                  SizedBox(height: 30),
-                  UrlText(
-                    text:
-                        'Replying to ${viewState.model?.user?.userName ?? viewState.model?.user?.displayName}',
-                    style: TextStyle(
-                      color: TwitterColor.paleSky,
-                      fontSize: 13,
-                    ),
-                  ),
+                  SizedBox(width: 3),
+                  viewState.model.user.isVerified
+                      ? customIcon(
+                          context,
+                          icon: AppIcon.blueTick,
+                          istwitterIcon: true,
+                          iconColor: AppColor.primary,
+                          size: 13,
+                          paddingIcon: 3,
+                        )
+                      : SizedBox(width: 0),
+                  SizedBox(width: viewState.model.user.isVerified ? 5 : 0),
+                  customText('${viewState.model.user.userName}',
+                      style: userNameStyle.copyWith(fontSize: 15)),
+                  SizedBox(width: 5),
+                  Padding(
+                    padding: EdgeInsets.only(top: 3),
+                    child: customText(
+                        '- ${getChatTime(viewState.model.createdAt)}',
+                        style: userNameStyle.copyWith(fontSize: 12)),
+                  )
                 ],
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                customImage(context, viewState.model.user.profilePic,
-                    height: 40),
-                SizedBox(width: 10),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                      minWidth: 0, maxWidth: fullWidth(context) * .5),
-                  child: TitleText(viewState.model.user.displayName,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      overflow: TextOverflow.ellipsis),
-                ),
-                SizedBox(width: 3),
-                viewState.model.user.isVerified
-                    ? customIcon(
-                        context,
-                        icon: AppIcon.blueTick,
-                        istwitterIcon: true,
-                        iconColor: AppColor.primary,
-                        size: 13,
-                        paddingIcon: 3,
-                      )
-                    : SizedBox(width: 0),
-                SizedBox(width: viewState.model.user.isVerified ? 5 : 0),
-                customText('${viewState.model.user.userName}',
-                    style: userNameStyle.copyWith(fontSize: 15)),
-                SizedBox(width: 5),
-                Padding(
-                  padding: EdgeInsets.only(top: 3),
-                  child: customText(
-                      '- ${getChatTime(viewState.model.createdAt)}',
-                      style: userNameStyle.copyWith(fontSize: 12)),
-                )
-              ],
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    var feedState = Provider.of<FeedState>(context, listen: false);
+
     var authState = Provider.of<AuthState>(context, listen: false);
     return Container(
       height: fullHeight(context),
-      padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           viewState.widget.isWoot ? SizedBox.shrink() : _tweerCard(context),
+          viewState.widget.isWoot == false && viewState.widget.isRewoot == false
+              ? Column(
+                  children: List<Widget>.generate(
+                      (viewState.model.replyWootKeyList.length), (index) {
+                    FeedModel singleFeedModel = feedState.feedlist
+                        .where((element) =>
+                            element.key ==
+                            viewState.model.replyWootKeyList[index])
+                        .first;
+                    return Woot(
+                      model: singleFeedModel,
+                      trailing: WootBottomSheet().wootOptionIcon(
+                        context,
+                        singleFeedModel,
+                        WootType.Woot,
+                      ),
+                    );
+                    return Container(
+                      height: 50,
+                      width: 50,
+                      color: Colors.red,
+                      margin: EdgeInsets.symmetric(vertical: 10),
+                      child: Text("${singleFeedModel.description}"),
+                    );
+                  }),
+                )
+              : Container(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -932,7 +972,6 @@ class _ComposeWoot
       ),
     );
   }
-
 }
 
 class _TextField extends StatelessWidget {

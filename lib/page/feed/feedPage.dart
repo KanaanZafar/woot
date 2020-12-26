@@ -94,7 +94,8 @@ class _FeedPageBody extends StatefulWidget {
   __FeedPageBodyState createState() => __FeedPageBodyState();
 }
 
-class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveClientMixin{
+class __FeedPageBodyState extends State<_FeedPageBody>
+    with AutomaticKeepAliveClientMixin {
   List<FeedModel> topWoots = List();
   List<FeedModel> list = List<FeedModel>();
   int noTopWoots;
@@ -138,7 +139,6 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
-
     return Consumer<FeedState>(
       builder: (context, state, child) {
         if (authState.userModel == null) {
@@ -164,7 +164,8 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
               stretch: true,
               elevation: 12,
               leading: _getUserAvatar(context),
-              title: Image.asset('assets/images/icon-48.png', height: 40, width: 40),
+              title: Image.asset('assets/images/icon-48.png',
+                  height: 40, width: 40),
               centerTitle: true,
               iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
               backgroundColor: Colors.white,
@@ -196,22 +197,19 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
                       ),
                     ),
                   )
-                : /*!state.isBusy && */list.length == 0
+                : /*!state.isBusy && */ list.length == 0
                     ? SliverToBoxAdapter(
-                        child: EmptyList(
-                          'No Woot in your Feed',
-                          subTitle:
-                              "When New Woot Created,"
-                                  " they'll be visible here. Click the woot button to add New woot."
-                        ),
+                        child: EmptyList('No Woot in your Feed',
+                            subTitle: "When New Woot Created,"
+                                " they'll be visible here. Click the woot button to add New woot."),
                       )
                     : SliverList(
                         delegate: SliverChildListDelegate(
                           list.map((model) {
                             if (widget.searchState?.userlist != null &&
                                 widget.searchState?.userlist.length > 0) {
-                              MyUser userN = widget.searchState?.userlist.firstWhere(
-                                  (element) =>
+                              MyUser userN = widget.searchState?.userlist
+                                  .firstWhere((element) =>
                                       element.userId == model.user.userId);
                               model.user = userN;
                             }
@@ -229,7 +227,7 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
                               ),
                             );
                           }).toList(),
-                            ),
+                        ),
                       )
           ],
         );
@@ -256,8 +254,7 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
               "Trending Woots",
               textScaleFactor: 1,
               style: TextStyle(
-                  color: TwitterColor.dodgetBlue,
-                  fontWeight: FontWeight.w400),
+                  color: TwitterColor.dodgetBlue, fontWeight: FontWeight.w400),
             ),
 //             SingleChildScrollView(
 //               padding: EdgeInsets.all(8.0),
@@ -321,7 +318,7 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
                           onTapWoot(context, topModel, WootType.Woot);
                         },
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(6,6,6,0),
+                          padding: EdgeInsets.fromLTRB(6, 6, 6, 0),
                           child: Stack(
                             alignment: Alignment.topCenter,
                             children: <Widget>[
@@ -357,7 +354,8 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
                                         Expanded(
                                           child: Container(
                                             child: Padding(
-                                              padding: EdgeInsets.fromLTRB(8,8,8,0),
+                                              padding: EdgeInsets.fromLTRB(
+                                                  8, 8, 8, 0),
                                               child: Text(
                                                 "${topModel.description} ",
                                                 style: TextStyle(
@@ -410,9 +408,7 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
                           child: Text(
                             topModel.user.displayName,
                             style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12
-                            ),
+                                fontWeight: FontWeight.w400, fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                           ),
@@ -426,27 +422,23 @@ class __FeedPageBodyState extends State<_FeedPageBody> with AutomaticKeepAliveCl
             suggestionState.suggestionsList.length == 0
                 ? Container()
                 : ConstrainedBox(
-              constraints: BoxConstraints(
-                  minHeight: 0, maxHeight: 230),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: suggestionState
-                    .suggestionsList.length,
-                itemBuilder: (context, index) {
-                  return FeedFollowTile(
-                    user: suggestionState
-                        .suggestionsList[index],
-                    callback: () async {
-                      await suggestionState.addFollowing(
-                        authState.userModel,
-                        suggestionState
-                            .suggestionsList[index],
-                      );
-                    },
-                  );
-                },
-              ),
-            )
+                    constraints: BoxConstraints(minHeight: 0, maxHeight: 230),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: suggestionState.suggestionsList.length,
+                      itemBuilder: (context, index) {
+                        return FeedFollowTile(
+                          user: suggestionState.suggestionsList[index],
+                          callback: () async {
+                            await suggestionState.addFollowing(
+                              authState.userModel,
+                              suggestionState.suggestionsList[index],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  )
           ],
         ),
       ),

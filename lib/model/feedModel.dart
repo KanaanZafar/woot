@@ -200,4 +200,9 @@ class FeedModel {
     // print("getParsedWootObject = " + parseObject.toString());
     return parseObject;
   }
+
+  @override
+  String toString() {
+    return 'FeedModel{key: $key, isImageAvailable: $isImageAvailable, uint8list: $uint8list, parentkey: $parentkey, childRewootkey: $childRewootkey, description: $description, userId: $userId, likeCount: $likeCount, dislikeCount: $dislikeCount, views: $views, likeList: $likeList, dislikeList: $dislikeList, commentCount: $commentCount, rewootCount: $rewootCount, createdAt: $createdAt, imagePath: $imagePath, tags: $tags, replyWootKeyList: $replyWootKeyList, viewsList: $viewsList, user: $user, p: $p, pool: $pool, newPool: $newPool, video: $video}';
+  }
 }

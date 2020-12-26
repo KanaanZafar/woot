@@ -1,29 +1,27 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/firebase_database.dart' as dabase;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:path/path.dart' as Path;
-import 'package:provider/provider.dart';
-import 'package:wootter_x/bloc/notifications_sender.dart';
 import 'package:wootter_x/helper/enum.dart';
 import 'package:wootter_x/helper/utility.dart';
 import 'package:wootter_x/model/feedModel.dart';
 import 'package:wootter_x/model/user.dart';
-import 'package:wootter_x/state/searchState.dart';
-
 import 'appState.dart';
-// import 'authState.dart';
+import 'authState.dart';
+import 'package:wootter_x/model/user.dart';
 
 class FeedState extends AppState {
   bool isBusy = false;
   Map<String, List<FeedModel>> wootReplyMap = {};
   FeedModel _wootToReplyModel;
+
   FeedModel get wootToReplyModel => _wootToReplyModel;
+
   set setWootToReply(FeedModel model) {
     _wootToReplyModel = model;
     notifyListeners();
@@ -35,6 +33,7 @@ class FeedState extends AppState {
   dabase.Query _feedQuery;
   List<FeedModel> _wootDetailModelList;
   List<String> _userfollowingList;
+
   List<String> get followingList => _userfollowingList;
 
   List<FeedModel> get wootDetailModel => _wootDetailModelList;
@@ -59,24 +58,19 @@ class FeedState extends AppState {
 
         /// fetch today's woot....
         list = _feedlist.where((x) {
-          // cprint(DateTime.parse(x.createdAt).toLocal().toString());
-          if (x.likeList == null)
-            x.likeList = List<String>();
-          if (x.dislikeList == null)
-            x.dislikeList = List<String>();
-          if (x.replyWootKeyList == null)
-            x.replyWootKeyList = List<String>();
-          if (x.user.contactsList == null)
-            x.user.contactsList = List<String>();
+          if (x.likeList == null) x.likeList = List<String>();
+          if (x.dislikeList == null) x.dislikeList = List<String>();
+          if (x.replyWootKeyList == null) x.replyWootKeyList = List<String>();
+          if (x.user.contactsList == null) x.user.contactsList = List<String>();
           if (x.user.followersList == null)
             x.user.followersList = List<String>();
-
 
           DateTime wootDay = DateTime.parse(x.createdAt).toLocal();
           DateTime today = DateTime.now();
 
-          if (today.day == wootDay.day && today.month == wootDay.month
-              && today.year == today.year) {
+          if (today.day == wootDay.day &&
+              today.month == wootDay.month &&
+              today.year == today.year) {
             if (x.video != null || x.imagePath != null
                 /*|| x.imagePath?.isNotEmpty || x.video?.isNotEmpty*/)
               return true;
@@ -102,7 +96,7 @@ class FeedState extends AppState {
         }).toList();
         return List.from(l);
       }
-    }catch (e) {
+    } catch (e) {
       cprint(e.toString(), errorIn: '__topWoot__');
       print(e.toString());
     }
@@ -118,9 +112,9 @@ class FeedState extends AppState {
 
     List<FeedModel> list;
 
-
     if (!isBusy && _feedlist != null && _feedlist.isNotEmpty) {
       print('__getting related _feedlist__ ');
+
       list = _feedlist.where((x) {
         /// If Woot is a comment then no need to add it in woot list
         if (x.parentkey != null &&
@@ -144,7 +138,7 @@ class FeedState extends AppState {
         list = null;
       }
     }
-    return List.from(list?.reversed ?? [])??[];
+    return List.from(list?.reversed ?? []) ?? [];
   }
 
   /// set woot for detail woot page
@@ -209,7 +203,7 @@ class FeedState extends AppState {
   }
 
   /// get [Woot list] from firebase realtime database
-  void getDataFromDatabase() async{
+  void getDataFromDatabase() async {
     try {
       isBusy = true;
       notifyListeners();
@@ -217,13 +211,13 @@ class FeedState extends AppState {
       ParseResponse parseResponse = await ParseObject('woot').getAll();
 
       if (parseResponse.success) {
-
-        if(parseResponse.results == null ){
-          return ;
+        if (parseResponse.results == null) {
+          return;
         }
         _feedlist = List<FeedModel>();
 
-        print(' woots length from parse = ' + parseResponse.results.length.toString());
+        print(' woots length from parse = ' +
+            parseResponse.results.length.toString());
 
         parseResponse.results.forEach((element) {
           var map = element;
@@ -242,16 +236,14 @@ class FeedState extends AppState {
           // if(model.user.contactsList == null)
           //   model.dislikeList = List<String>();
           // print(model.key.toString() + " -- " + element['objectId'].toString());
-          if (model.isValidWoot)
-            _feedlist.add(model);
+          if (model.isValidWoot) _feedlist.add(model);
           // else
           // print('invalid woot__' + model.description ?? 'no description');
         });
 
-        _feedlist.sort((x, y) => DateTime.parse(x.createdAt)
-            .compareTo(DateTime.parse(y.createdAt)));
-      }
-      else {
+        _feedlist.sort((x, y) =>
+            DateTime.parse(x.createdAt).compareTo(DateTime.parse(y.createdAt)));
+      } else {
         print('__else__parseResponse.success__@feedState.dart');
       }
 
@@ -305,14 +297,14 @@ class FeedState extends AppState {
         setFeedModel = _wootDetail;
         postID = model.key;
       } else {
-
-        ParseResponse parentWootResponse = await ParseObject('woot').getObject(postID);
+        ParseResponse parentWootResponse =
+            await ParseObject('woot').getObject(postID);
         if (parentWootResponse.success) {
-
           _wootDetail = FeedModel.fromJson(parentWootResponse.results.first);
           // _wootDetail.key = fetchWootResponse.results.first['objectId'];
           setFeedModel = _wootDetail;
         }
+
         /// Fetch woot data from firebase realtime database
         // kDatabase.child('woot').child(postID).once().then((DataSnapshot snapshot) {
         //   if (snapshot.value != null) {
@@ -334,8 +326,10 @@ class FeedState extends AppState {
             print('fetching comments -- $x');
             if (x == null) return;
 
-            ParseObject('woot').getObject(x).then ((commentResponse) {
-              var commentModel = FeedModel.fromJson( commentResponse.results.first);
+            ParseObject('woot').getObject(x).then((commentResponse) {
+              var commentModel =
+                  FeedModel.fromJson(commentResponse.results.first);
+
               /// add comment woot to list if woot is not present in [comment woot ]list
               /// To reduce duplicacy
               if (!_commentlist.any((x) => x.key == commentModel.key))
@@ -348,8 +342,7 @@ class FeedState extends AppState {
                 wootReplyMap.putIfAbsent(postID, () => _commentlist);
                 notifyListeners();
               }
-            }).catchError( (e) => print(e.toString() + " "));
-
+            }).catchError((e) => print(e.toString() + " "));
 
             /// fetch one by comment from firebase realtime database....
             /*kDatabase.child('woot').child(x).once().then((DataSnapshot snapshot) {
@@ -427,7 +420,7 @@ class FeedState extends AppState {
 
       ParseResponse response = await model.getParsedObject().create();
 
-      if (response.success){
+      if (response.success) {
         print('woot created on parse server');
         model.key = response.results.first['objectId'];
         ParseObject object = ParseObject('woot')..objectId = model.key;
@@ -435,10 +428,10 @@ class FeedState extends AppState {
         object.set('key', model.key);
         object.save();
         model.key = model.key;
+
         /// no need to add in [_feedlist] when we have liveQuery on woot class....
         _feedlist.add(model);
-      }
-      else {
+      } else {
         print('else__response.success__');
         print(response.error.toString());
       }
@@ -456,10 +449,10 @@ class FeedState extends AppState {
   ///  update rewoot count for rewooted model
   createReWoot(FeedModel model) {
     try {
-
       createWoot(model);
       _wootToReplyModel.rewootCount += 1;
-      updateWoot(_wootToReplyModel, childRewootkey: model.childRewootkey, rewootKey: _feedlist.last.key);
+      updateWoot(_wootToReplyModel,
+          childRewootkey: model.childRewootkey, rewootKey: _feedlist.last.key);
     } catch (error) {
       cprint(error, errorIn: 'createReWoot');
     }
@@ -467,7 +460,7 @@ class FeedState extends AppState {
 
   /// Add [new comment woot] to any woot
   /// Comment is a Woot itself
-  addcommentToPost(FeedModel replyWoot) async{
+  addcommentToPost(FeedModel replyWoot) async {
     try {
       isBusy = true;
       notifyListeners();
@@ -475,12 +468,12 @@ class FeedState extends AppState {
 
       if (_wootToReplyModel != null) {
         FeedModel parentWoot =
-        _feedlist.firstWhere((x) => x.key == _wootToReplyModel.key);
+            _feedlist.firstWhere((x) => x.key == _wootToReplyModel.key);
         // var commentJson = replyWoot.toJson();
 
         ParseResponse postResponse = await replyWoot.getParsedObject().create();
 
-        if (postResponse.success){
+        if (postResponse.success) {
           print(postResponse.results.first['objectId']);
           replyWoot.key = postResponse.results.first['objectId'];
           ParseObject object = ParseObject('woot')..objectId = replyWoot.key;
@@ -503,14 +496,13 @@ class FeedState extends AppState {
           if (updateResponse.success) {
             print('commentCount update, key added success');
             _feedlist.add(replyWoot);
-          }
-          else {
+          } else {
             print('__else__updateResponse.success__@addcommentToPost__');
           }
-        }
-        else {
+        } else {
           print('__else__postResponse.success__@addcommentToPost__');
         }
+
         /// firebase realtime database approach....
         // kDatabase.child('woot').push().set(commentJson).then((value) async {
         //   parentWoot.replyWootKeyList.add(_feedlist.last.key);
@@ -574,7 +566,7 @@ class FeedState extends AppState {
   }
 
   /// [Delete file] from firebase storage
-  Future<void> deleteFile (String url, String baseUrl) async {
+  Future<void> deleteFile(String url, String baseUrl) async {
     try {
       String filePath = url.replaceAll(
           new RegExp(
@@ -596,20 +588,21 @@ class FeedState extends AppState {
   }
 
   /// [update] woot
-  updateWoot (FeedModel model, {String childRewootkey, String rewootKey}) async {
+  updateWoot(FeedModel model, {String childRewootkey, String rewootKey}) async {
     ParseObject rewootedObject = ParseObject('woot')
       ..objectId = childRewootkey
+
       /// ....
       // ..setAddUnique('replyWootKeyList', rewootKey)
       ..setIncrement('rewootCount', 1);
 
     await rewootedObject.update();
-    
+
     /// firebase realtime database update....
     // await kDatabase.child('woot').child(model.key).update(model.toJson());
   }
 
-  calculateStar (FeedModel woot) {
+  calculateStar(FeedModel woot) {
     var diff = woot.user.totalLikes - woot.user.totalDisLikes;
     if (diff < 0 /*|| woot.user.totalLikes == 0*/) {
       woot.user.ratingPattern = '00000';
@@ -639,12 +632,13 @@ class FeedState extends AppState {
         woot.user.ratingPattern = '22222';
     }
     return woot.user.ratingPattern;
-   print('pattern = '+woot.user.ratingPattern);
+    print('pattern = ' + woot.user.ratingPattern);
   }
 
-  updateTotals (FeedModel woot, {bool isLike, bool isBoth = false, bool isAdd}) async {
+  updateTotals(FeedModel woot,
+      {bool isLike, bool isBoth = false, bool isAdd}) async {
     cprint('updateStar');
-    kDatabase.child('rating').child(woot.user.userId).once().then((data) async{
+    kDatabase.child('rating').child(woot.user.userId).once().then((data) async {
 //       print("l = " + woot.user.totalLikes.toString());
 //       print("d = " + woot.user.totalDisLikes.toString());
       woot.user.totalLikes = data.value['totalLikes'] ?? 0;
@@ -656,28 +650,26 @@ class FeedState extends AppState {
         if (isAdd) {
           woot.user.totalLikes += 1;
           woot.user.totalDisLikes -= 1;
-        }
-        else {
+        } else {
           woot.user.totalDisLikes += 1;
           woot.user.totalLikes -= 1;
         }
-      }
-      else if (!isLike && isBoth) {
+      } else if (!isLike && isBoth) {
         if (isAdd) {
           woot.user.totalDisLikes += 1;
           woot.user.totalLikes -= 1;
-        }
-        else {
+        } else {
           woot.user.totalLikes += 1;
           woot.user.totalDisLikes -= 1;
         }
-      }
-      else if (isLike)
-        if (isAdd) woot.user.totalLikes += 1;
-        else woot.user.totalLikes -= 1;
+      } else if (isLike) if (isAdd)
+        woot.user.totalLikes += 1;
       else
-        if (isAdd) woot.user.totalDisLikes += 1;
-        else woot.user.totalDisLikes -= 1;
+        woot.user.totalLikes -= 1;
+      else if (isAdd)
+        woot.user.totalDisLikes += 1;
+      else
+        woot.user.totalDisLikes -= 1;
 
 //       print("l = " + woot.user.totalLikes.toString());
 //       print("d = " + woot.user.totalDisLikes.toString());
@@ -694,16 +686,20 @@ class FeedState extends AppState {
 
   /// Add/Remove like on a Woot
   /// [postId] is woot id, [userKeyId] is user's id who like/unlike Woot
-  addLikeToWoot (FeedModel woot, String userKeyId, [bool isAlreadyUpdated = false]) async{
+  addLikeToWoot(FeedModel woot, String userKeyId,
+      [bool isAlreadyUpdated = false]) async {
     try {
       int index = feedlist.indexOf(woot);
       if (woot.likeList != null &&
           woot.likeList.length > 0 &&
           woot.likeList.any((id) => id == userKeyId)) {
         /// If user wants to undo/remove his like on woot
-        _feedlist.firstWhere((element) => element.key == woot.key)
-            .likeList.removeWhere((id) => id == userKeyId);
-        _feedlist.firstWhere((element) => element.key == woot.key).likeCount -= 1;
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .likeList
+            .removeWhere((id) => id == userKeyId);
+        _feedlist.firstWhere((element) => element.key == woot.key).likeCount -=
+            1;
         // if (_feedlist.elementAt(index).key == woot.key) {
         //   print('__match__');
         //   _feedlist[index].likeList.removeWhere((id) => id == userKeyId);
@@ -715,22 +711,28 @@ class FeedState extends AppState {
       } else {
         /// If user like Woot
         if (woot.likeList == null) {
-          _feedlist.firstWhere((element) => element.key == woot.key).likeList = [];
+          _feedlist.firstWhere((element) => element.key == woot.key).likeList =
+              [];
           woot.likeList = [];
         }
-        _feedlist.firstWhere((element) => element.key == woot.key).likeList.add(userKeyId);
-        _feedlist.firstWhere((element) => element.key == woot.key).likeCount += 1;
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .likeList
+            .add(userKeyId);
+        _feedlist.firstWhere((element) => element.key == woot.key).likeCount +=
+            1;
 
         notifyListeners();
         updateLike(wootId: woot.key, userKeyId: userKeyId, isAdd: true);
         // if (!isAlreadyUpdated)
         //   await updateTotals(woot, isLike: true, isBoth: true, isAdd: true);
 
-        if (!isAlreadyUpdated && woot.dislikeList.any((id) => id == userKeyId)) {
+        if (!isAlreadyUpdated &&
+            woot.dislikeList.any((id) => id == userKeyId)) {
           addDisLikeToWoot(woot, userKeyId, true);
           updateTotals(woot, isLike: true, isBoth: true, isAdd: true);
-        }
-        else updateTotals(woot, isLike: true, isAdd: true);
+        } else
+          updateTotals(woot, isLike: true, isAdd: true);
       }
 
       /// calculate star rating for profile
@@ -755,30 +757,42 @@ class FeedState extends AppState {
     }
   }
 
-  addDisLikeToWoot (FeedModel woot, String userKeyId, [bool isAlreadyUpdated = false]) async{
+  addDisLikeToWoot(FeedModel woot, String userKeyId,
+      [bool isAlreadyUpdated = false]) async {
     try {
-
-      if (woot.dislikeList != null && woot.dislikeList.length > 0 &&
+      if (woot.dislikeList != null &&
+          woot.dislikeList.length > 0 &&
           woot.dislikeList.any((id) => id == userKeyId)) {
         /// If user wants to undo/remove his dislike on woot
-        _feedlist.firstWhere((element) => element.key == woot.key)
-            .dislikeList.removeWhere((id) => id == userKeyId);
-        _feedlist.firstWhere((element) => element.key == woot.key).dislikeCount -= 1;
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .dislikeList
+            .removeWhere((id) => id == userKeyId);
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .dislikeCount -= 1;
         // if (_feedlist.elementAt(index).key == woot.key) {
         //   _feedlist[index].dislikeList.removeWhere((id) => id == userKeyId);
         //   _feedlist[index].dislikeCount -= 1;
         // }
         // notifyListeners();
-        updateTotals(woot, isLike: false, isAdd: false );
+        updateTotals(woot, isLike: false, isAdd: false);
         updateDisLike(wootId: woot.key, userKeyId: userKeyId, isRemove: true);
       } else {
         /// If user dislike Woot
         if (woot.dislikeList == null) {
-          _feedlist.firstWhere((element) => element.key == woot.key).dislikeList = [];
+          _feedlist
+              .firstWhere((element) => element.key == woot.key)
+              .dislikeList = [];
           woot.dislikeList = [];
         }
-        _feedlist.firstWhere((element) => element.key == woot.key).dislikeList.add(userKeyId);
-        _feedlist.firstWhere((element) => element.key == woot.key).dislikeCount += 1;
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .dislikeList
+            .add(userKeyId);
+        _feedlist
+            .firstWhere((element) => element.key == woot.key)
+            .dislikeCount += 1;
 
         updateDisLike(wootId: woot.key, userKeyId: userKeyId, isRemove: false);
         // if (!isAlreadyUpdated) {
@@ -787,8 +801,7 @@ class FeedState extends AppState {
         if (!isAlreadyUpdated && woot.likeList.any((id) => id == userKeyId)) {
           addLikeToWoot(woot, userKeyId, true);
           updateTotals(woot, isLike: false, isBoth: true, isAdd: true);
-        }
-        else {
+        } else {
           updateTotals(woot, isLike: false, isAdd: true);
         }
       }
@@ -808,18 +821,18 @@ class FeedState extends AppState {
             : DateTime.now().toUtc().toString(),
       });
       notifyListeners();
-
     } catch (error) {
       cprint(error, errorIn: 'addDisLikeToWoot');
       notifyListeners();
-
     }
   }
 
   ///update likeList and count on parse server
-  updateLike ({ @required String wootId, @required String userKeyId,
-    @required bool isAdd, }) async
-  {
+  updateLike({
+    @required String wootId,
+    @required String userKeyId,
+    @required bool isAdd,
+  }) async {
     log(userKeyId);
     log(wootId);
     ParseObject updateObject = ParseObject('woot')..objectId = wootId;
@@ -827,7 +840,8 @@ class FeedState extends AppState {
       updateObject.setAddUnique('likeList', userKeyId);
     else
       updateObject.setRemove('likeList', userKeyId);
-    await updateObject.save()
+    await updateObject
+        .save()
         .then((value) => print(value.results))
         .catchError((onError) => print('__error__:) ${onError.toString()}'));
 
@@ -835,16 +849,18 @@ class FeedState extends AppState {
   }
 
   ///update  disLikeList and count on parse server
-  updateDisLike ({ @required String wootId, @required String userKeyId,
-    @required bool isRemove }) async
-  {
+  updateDisLike(
+      {@required String wootId,
+      @required String userKeyId,
+      @required bool isRemove}) async {
     cprint(wootId);
     ParseObject updateObject = ParseObject('woot')..objectId = wootId;
     if (isRemove)
       updateObject.setRemove('dislikeList', userKeyId);
     else
       updateObject.setAddUnique('dislikeList', userKeyId);
-    await updateObject.save()
+    await updateObject
+        .save()
         .then((value) => print(value.results))
         .catchError((onError) => print('__error__:) ${onError.toString()}'));
 
@@ -1016,7 +1032,11 @@ class FeedState extends AppState {
 
       /// Delete notification related to deleted Woot.
       if (deletedWoot.likeCount > 0) {
-        kDatabase.child('notification').child(woot.userId).child(woot.key).remove();
+        kDatabase
+            .child('notification')
+            .child(woot.userId)
+            .child(woot.key)
+            .remove();
       }
       notifyListeners();
     } catch (error) {
@@ -1026,13 +1046,13 @@ class FeedState extends AppState {
 
   updateViews(FeedModel model, String authUserId) {
     ParseObject wootO = ParseObject('woot')..objectId = model.key;
+
     /// need to change count in feedPage
     wootO.setAddUnique('viewsList', authUserId);
     wootO.get('views');
     wootO.save().then((response) {
       if (response.success) {
         log('view added');
-
       }
     });
   }
